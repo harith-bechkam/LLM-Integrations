@@ -1,0 +1,7 @@
+flask
+flask-cors
+PyPDF2
+python-docx
+docx2txt
+scikit-learn
+sentence-transformers

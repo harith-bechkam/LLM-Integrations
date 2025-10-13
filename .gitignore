@@ -1,0 +1,8 @@
+__pycache__
+.idea
+.vscode
+
+VectorSearch/venv
+VectorSearch/uploads
+
+ResumeScorer/venv
