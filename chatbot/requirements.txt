@@ -1,0 +1,9 @@
+fastapi
+uvicorn[standard]
+motor
+python-dotenv
+pydantic
+langchain>=0.0.200   # use a compatible version
+transformers
+torch               # optional but required if running HF models locally
+sentencepiece       # sometimes required for tokenizer models
