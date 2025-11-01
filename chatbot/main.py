@@ -12,10 +12,13 @@ from motor.motor_asyncio import AsyncIOMotorClient
 from models import NewChatResponse, ChatListItem, MessageIn, MessageOut, SendMessageResponse
 
 # Helpers
-from helpers import create_assistant_chain_with_memory, insert_message
+# from helpers import create_assistant_chain_with_memory, insert_message
+from helpers_simple import create_llm_chain_with_memory, insert_message
 
 # LangChain OpenAI
 from langchain_community.chat_models import ChatOpenAI
+
+from multi_agent_graph import run_multi_agent_workflow
 
 load_dotenv()
 
@@ -46,6 +49,7 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
 
 # ---------- API Endpoints ----------
 
@@ -102,12 +106,12 @@ async def send_message(chat_id: str, payload: MessageIn):
     user_text = payload.message
 
     # Build chain with memory
-    chain = create_assistant_chain_with_memory(llm, messages)
+    chain, memory = create_llm_chain_with_memory(llm, messages)
 
     # Generate assistant response
-    assistant_text = chain.predict(input=user_text)
+    assistant_text = chain.run(input=user_text)
 
-    # Save messages
+    # Save messages in MongoDB
     await insert_message(chats_coll, chat_id, "user", user_text)
     await insert_message(chats_coll, chat_id, "assistant", assistant_text)
 
@@ -128,3 +132,17 @@ async def delete_chat(chat_id: str):
     if res.deleted_count == 0:
         raise HTTPException(status_code=404, detail="Chat not found")
     return {"deleted": True}
+
+
+@app.post("/multiagent/message")
+async def multiagent_message(payload: MessageIn):
+    # Fetch existing chat messages if you want persistent memory
+    history = []
+    messages = run_multi_agent_workflow(payload.message, history)
+    return {"messages": messages}
+
+
+
+# from agents.multi_agent_graph import graph
+# graph.draw("multi_agent_flow.png")
+
